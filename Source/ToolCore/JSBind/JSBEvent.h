@@ -22,56 +22,56 @@
 
 #pragma once
 
-#include <Atomic/Container/Vector.h>
-#include <Atomic/Container/Str.h>
-#include <Atomic/Container/ArrayPtr.h>
-
 #include <Atomic/Core/Object.h>
 
 using namespace Atomic;
 
-namespace CPlusPlus
-{
-    class TranslationUnit;
-    class Namespace;
-}
-
 namespace ToolCore
 {
 
-class JSBModule;
+    class JSBPackage;
+    class JSBModule;
+    class JSBHeader;
 
-class JSBHeader : public Object
-{
 
-    ATOMIC_OBJECT(JSBHeader, Object)
+    class JSBEvent : public Object
+    {
 
-public:
+        ATOMIC_OBJECT(JSBEvent, Object)
 
-    JSBHeader(Context* context, JSBModule* module, const String& filepath);
-    virtual ~JSBHeader();
+    public:
 
-    const String& GetFilePath() { return filepath_; }
-    JSBModule* GetModule() { return module_; }
+        struct EventParam
+        {
+            String paramID_;
+            String paramName_;
+            String typeInfo_;
+        };
 
-    void Parse();
+        JSBEvent(Context* context, JSBModule* module, const String& eventID, const String& eventName);
+        virtual ~JSBEvent();
 
-    void VisitPreprocess();
-    void VisitHeader();
+        const String& GetEventID() const { return eventID_; }
+        const String& GetEventName() const { return eventName_; }
 
-    const char* GetSource() const { return (const char*)data_.Get(); }
+        void SetHeader(JSBHeader* header) { header_ = header; }
+        JSBHeader* GetHeader() { return header_; }
 
-private:
+        JSBPackage* GetPackage();       
 
-    CPlusPlus::TranslationUnit* translationUnit_;
-    CPlusPlus::Namespace* globalNamespace_;
+        static bool ScanModuleEvents(JSBModule* module);
 
-    SharedArrayPtr<char> data_;
+    private:
 
-    // absolute path to source file
-    String filepath_;
-    SharedPtr<JSBModule> module_;
+        SharedPtr<JSBModule> module_;
+        JSBHeader* header_;
 
-};
+        String eventName_;
+        String eventID_;
+
+        Vector<EventParam> parameters_;
+
+    };
+
 
 }

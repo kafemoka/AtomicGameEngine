@@ -38,6 +38,7 @@ class JSBPackage;
 class JSBHeader;
 class JSBClass;
 class JSBEnum;
+class JSBEvent;
 class JSBPrimitiveType;
 
 class JSBModule : public Object
@@ -75,6 +76,11 @@ public:
     bool ContainsConstant(const String& constantName);
     void RegisterConstant(const String& constantName, const String& value, unsigned type, bool isUnsigned = false);
 
+    JSBEvent* GetEvent(const String& eventID, const String& eventName);
+    void RegisterEvent(JSBEvent* event);
+
+    const Vector<SharedPtr<JSBEvent>>& GetEvents();
+
     bool Requires(const String& requirement) { return requirements_.Contains(requirement); }
 
     bool Load(const String& jsonFilename);
@@ -93,6 +99,9 @@ public:
 
     /// Define guard for specific module code
     String GetClassDefineGuard(const String& name, const String& language = String::EMPTY) const;
+
+    /// Get the module's header files
+    const Vector<SharedPtr<JSBHeader>>& GetHeaders() const { return headers_; }
 
 private:
 
@@ -121,6 +130,8 @@ private:
     // native name -> JSBClass
     HashMap<StringHash, SharedPtr<JSBClass> > classes_;
     HashMap<StringHash, SharedPtr<JSBEnum> > enums_;
+
+    Vector<SharedPtr<JSBEvent> > events_;
 
     HashMap<String, Constant> constants_;
 

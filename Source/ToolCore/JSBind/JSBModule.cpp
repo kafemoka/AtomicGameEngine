@@ -35,6 +35,7 @@
 #include "JSBEnum.h"
 #include "JSBModuleWriter.h"
 #include "JSBType.h"
+#include "JSBEvent.h"
 
 #include "JavaScript/JSModuleWriter.h"
 #include "CSharp/CSModuleWriter.h"
@@ -394,6 +395,34 @@ void JSBModule::RegisterClass(String name)
 
         package_->RegisterClass(cls);
     }
+}
+
+void JSBModule::RegisterEvent(JSBEvent* event)
+{
+    if (JSBPackage::GetEventAllPackages(event->GetEventID(), event->GetEventName()))
+    {
+        ErrorExit(ToString("Event collision: %s : %s", event->GetEventID().CString(), event->GetEventName().CString()));
+    }
+
+    events_.Push(SharedPtr<JSBEvent>(event));
+}
+
+JSBEvent* JSBModule::GetEvent(const String& eventID, const String& eventName)
+{
+    for (unsigned i = 0; i < events_.Size(); i++)
+    {
+        if (events_[i]->GetEventName() == eventName || events_[i]->GetEventID() == eventID)
+        {
+            return events_[i];
+        }
+    }
+
+    return 0;
+}
+
+const Vector<SharedPtr<JSBEvent>>& JSBModule::GetEvents()
+{    
+    return events_;
 }
 
 void JSBModule::RegisterEnum(JSBEnum* jenum)
