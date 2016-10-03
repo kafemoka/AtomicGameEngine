@@ -20,6 +20,20 @@ namespace AtomicEngine
         }
         private Dictionary<uint, EventDelegate> eventHandlers;
 
+        private Dictionary<uint, NativeEventDelegate> NativeEventHandlers
+        {
+            get
+            {
+                if (nativeHandlers == null)
+                {
+                    nativeHandlers = new Dictionary<uint, NativeEventDelegate>();
+                }
+                return nativeHandlers;
+            }
+        }
+        private Dictionary<uint, NativeEventDelegate> nativeHandlers;
+
+
         private Dictionary<SenderEventKey, SenderEventDelegate> SenderEventHandlers
         {
             get
@@ -39,9 +53,28 @@ namespace AtomicEngine
             return AtomicNET.GetSubsystem<T>();
         }
 
+        internal void HandleNativeEvent(uint eventType, NativeEventData eventData)
+        {
+            NativeEventDelegate nativeDelegate;
+
+            if (!NativeEventHandlers.TryGetValue(eventType, out nativeDelegate))
+                return;
+
+            nativeDelegate(eventData);
+
+        }
+
         internal void HandleEvent(uint eventType, ScriptVariantMap eventData)
         {
-            eventHandlers[eventType](eventType, eventData);
+            EventDelegate eventDelegate;
+
+            if (!EventHandlers.TryGetValue(eventType, out eventDelegate))
+            {
+                // This should be a warning
+                return;
+            }
+
+            eventDelegate(eventType, eventData);
         }
 
         internal void HandleEvent(AObject sender, uint eventType, ScriptVariantMap eventData)
@@ -62,6 +95,27 @@ namespace AtomicEngine
             SubscribeToEvent(AtomicNET.StringToStringHash(eventType), eventDelegate);
         }
 
+        public void SubscribeToEvent<T>(NativeEventDelegate<T> eventDelegate) where T : NativeEventData
+        {
+            uint eventType = NativeEvents.GetEventID<T>();
+
+            if (eventType == 0)
+            {
+                throw new InvalidOperationException("AObject.SubscribeToEvent<T>(EventDelegate<T> eventDelegate) - Unknown native event id");
+            }
+
+            // Move this
+            NETCore.RegisterNETEventType(eventType);
+
+            NativeEventHandlers[eventType] = (eventData) =>
+            {
+                eventDelegate((T) eventData);
+            };
+
+            NativeCore.SubscribeToEvent(this, eventType);
+
+        }
+
         public void UnsubscribeFromEvent(uint eventType)
         {
             NativeCore.UnsubscribeFromEvent(this, eventType);
@@ -75,6 +129,7 @@ namespace AtomicEngine
                 throw new InvalidOperationException("AObject.SubscribeToEvent - trying to subscribe to events from a null object");
             }
 
+            // Move this
             NETCore.RegisterNETEventType(eventType);
             var key = new SenderEventKey(eventType, sender.nativeInstance);
             SenderEventHandlers[key] = eventDelegate;

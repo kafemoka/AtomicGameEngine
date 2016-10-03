@@ -420,7 +420,7 @@ void CSModuleWriter::GenerateManagedNativeEvents(String& sourceOut)
             if (p.typeInfo_ == "int" || p.typeInfo_ == "float")
             {
 
-                line = p.typeInfo_ + " " + p.paramName_ + "\n";
+                line = "public " + p.typeInfo_ + " " + p.paramName_ + "\n";
                 source += IndentLine(line);
                 source += IndentLine("{\n");
 
@@ -434,9 +434,9 @@ void CSModuleWriter::GenerateManagedNativeEvents(String& sourceOut)
                 line = "return ";
 
                 if (p.typeInfo_ == "int")
-                    line += "GetInt";
+                    line += "scriptMap.GetInt";
                 else
-                    line += "GetFloat";
+                    line += "scriptMap.GetFloat";
 
                 line += ToString("(\"%s\");\n", p.paramName_.CString());
                 source += IndentLine(line);
@@ -525,6 +525,19 @@ void CSModuleWriter::GenerateManagedModuleClass(String& sourceOut)
         }
 
 
+    }
+
+    source += "\n";
+
+    // Native Events
+    const Vector<SharedPtr<JSBEvent>>& events = module_->GetEvents();
+
+    for (unsigned i = 0; i < events.Size(); i++)
+    {
+        JSBEvent* event = events[i];
+
+        line = ToString("NativeEvents.RegisterEventID<%sEventData>(\"%s\");\n", event->GetEventName().CString(), event->GetEventName().CString());
+        source += IndentLine(line);
     }
 
     Dedent();

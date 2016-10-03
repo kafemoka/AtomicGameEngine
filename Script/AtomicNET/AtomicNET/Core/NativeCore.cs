@@ -179,6 +179,9 @@ namespace AtomicEngine
 
             // iterate over copy of list so we can modify it while running
             ScriptVariantMap scriptMap = null;
+            bool nativeEventDataCreated = false;
+            NativeEventData nativeEventData = null;
+
             AObject receiver;
             foreach (EventSubscription er in eventReceivers.ToList())
             {
@@ -203,6 +206,15 @@ namespace AtomicEngine
                 }
                 else if (er.Sender == IntPtr.Zero)
                 {
+                    if (!nativeEventDataCreated && nativeEventData == null)
+                    {
+                        nativeEventDataCreated = true;
+                        nativeEventData = NativeEvents.InstantiateNativeEventData(eventType, scriptMap);
+                    }
+
+                    if (nativeEventData != null)
+                        receiver.HandleNativeEvent(eventType, nativeEventData);
+
                     receiver.HandleEvent(eventType, scriptMap);
                 }
             }

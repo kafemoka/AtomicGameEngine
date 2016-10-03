@@ -42,5 +42,6 @@ namespace AtomicEngine
         private static extern IntPtr csi_Atomic_AtomicNET_ScriptVariantMap_GetVoidPtr(IntPtr self, string key);
 
     }
+
 }
 
