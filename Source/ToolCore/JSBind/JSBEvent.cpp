@@ -75,6 +75,7 @@ bool JSBEvent::ScanModuleEvents(JSBModule* module)
         for (unsigned j = 0; j < lines.Size(); j++)
         {
             String line = lines[j].Trimmed();
+            line.Replace("\r", "");
 
             // Note: processes ATOMIC_EVENT decl in commented blocks
             if (line.StartsWith("ATOMIC_EVENT"))

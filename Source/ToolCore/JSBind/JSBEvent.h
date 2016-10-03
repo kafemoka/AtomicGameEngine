@@ -53,6 +53,8 @@ namespace ToolCore
 
         const String& GetEventID() const { return eventID_; }
         const String& GetEventName() const { return eventName_; }
+        const Vector<EventParam>& GetParameters() const { return parameters_;  }
+
 
         void SetHeader(JSBHeader* header) { header_ = header; }
         JSBHeader* GetHeader() { return header_; }
@@ -60,6 +62,7 @@ namespace ToolCore
         JSBPackage* GetPackage();       
 
         static bool ScanModuleEvents(JSBModule* module);
+
 
     private:
 

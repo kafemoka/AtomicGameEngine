@@ -29,6 +29,7 @@
 #include "../JSBEnum.h"
 #include "../JSBClass.h"
 #include "../JSBFunction.h"
+#include "../JSBEvent.h"
 
 #include "CSTypeHelper.h"
 #include "CSClassWriter.h"
@@ -385,6 +386,96 @@ void CSModuleWriter::GenerateManagedEnumsAndConstants(String& source)
 
 }
 
+void CSModuleWriter::GenerateManagedNativeEvents(String& sourceOut)
+{
+    Indent();
+
+    String source;
+
+    const Vector<SharedPtr<JSBEvent>>& events = module_->GetEvents();
+
+    for (unsigned i = 0; i < events.Size(); i++)
+    {
+        JSBEvent* event = events[i];
+
+        const String& eventName = event->GetEventName();
+        const String& eventID = event->GetEventID();
+
+        String line = ToString("public partial class %sEventData : NativeEventData\n", event->GetEventName().CString());
+
+        source += IndentLine(line);
+
+        source += IndentLine("{\n\n");
+
+        Indent();
+
+        // parameters
+
+        const Vector<JSBEvent::EventParam>& params = event->GetParameters();
+
+        for (unsigned j = 0; j < params.Size(); j++)
+        {
+            const JSBEvent::EventParam& p = params[j];
+
+            if (p.typeInfo_ == "int" || p.typeInfo_ == "float")
+            {
+
+                line = p.typeInfo_ + " " + p.paramName_ + "\n";
+                source += IndentLine(line);
+                source += IndentLine("{\n");
+
+                Indent();
+
+                source += IndentLine("get\n");
+                source += IndentLine("{\n");
+
+                Indent();
+
+                line = "return ";
+
+                if (p.typeInfo_ == "int")
+                    line += "GetInt";
+                else
+                    line += "GetFloat";
+
+                line += ToString("(\"%s\");\n", p.paramName_.CString());
+                source += IndentLine(line);
+
+                Dedent();
+
+                source += IndentLine("}\n");
+
+                Dedent();
+
+                source += IndentLine("}\n\n");
+
+            }
+
+        }
+
+/*
+        int Key
+        {
+            get
+        {
+            return GetInt("Key");
+        }
+
+        }
+*/
+
+        Dedent();
+
+        source += IndentLine("}\n\n");
+
+    }
+
+
+    sourceOut += source;
+
+    Dedent();
+}
+
 void CSModuleWriter::GenerateManagedModuleClass(String& sourceOut)
 {
     Indent();
@@ -471,6 +562,7 @@ void CSModuleWriter::GenerateManagedSource()
     source += "{\n";
 
     GenerateManagedEnumsAndConstants(source);
+    GenerateManagedNativeEvents(source);
     GenerateManagedModuleClass(source);
     GenerateManagedClasses(source);
 
