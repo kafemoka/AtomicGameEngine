@@ -417,10 +417,23 @@ void CSModuleWriter::GenerateManagedNativeEvents(String& sourceOut)
         {
             const JSBEvent::EventParam& p = params[j];
 
-            if (p.typeInfo_ == "int" || p.typeInfo_ == "float")
+            JSBClass* cls = JSBPackage::GetClassAllPackages(p.typeInfo_);
+
+            String typeName = p.typeInfo_;
+
+            if (!cls)
+                typeName = typeName.ToLower();
+
+            if (typeName == "int" || typeName == "float" ||
+                typeName == "bool" || typeName == "string" || typeName == "enum" || cls)
             {
 
-                line = "public " + p.typeInfo_ + " " + p.paramName_ + "\n";
+                if (typeName == "enum")
+                {
+                    typeName = "int";
+                }
+
+                line = "public " + typeName + " " + p.paramName_ + "\n";
                 source += IndentLine(line);
                 source += IndentLine("{\n");
 
@@ -433,10 +446,26 @@ void CSModuleWriter::GenerateManagedNativeEvents(String& sourceOut)
 
                 line = "return ";
 
-                if (p.typeInfo_ == "int")
+                if (typeName == "int")
                     line += "scriptMap.GetInt";
-                else
+                else if (typeName == "float")
                     line += "scriptMap.GetFloat";
+                else if (typeName == "bool")
+                    line += "scriptMap.GetBool";
+                else if (typeName == "string")
+                    line += "scriptMap.GetString";
+                else if (cls)
+                {
+                    if (typeName == "Vector3")
+                    {
+                        line += "scriptMap.Get" + typeName;
+                    }
+                    else
+                    {
+                        line += ToString("scriptMap.GetPtr<%s>", cls->GetName().CString());
+                    }
+                    
+                }
 
                 line += ToString("(\"%s\");\n", p.paramName_.CString());
                 source += IndentLine(line);
