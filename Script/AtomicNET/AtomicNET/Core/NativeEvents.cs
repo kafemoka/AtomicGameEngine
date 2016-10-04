@@ -6,8 +6,6 @@ namespace AtomicEngine
 {
     public delegate void EventDelegate(uint eventType, ScriptVariantMap eventData);
 
-    public delegate void SenderEventDelegate(AObject sender, uint eventType, ScriptVariantMap eventData);
-
     public delegate void NativeEventDelegate(NativeEventData eventData);
     public delegate void NativeEventDelegate<T>(T eventData);
 

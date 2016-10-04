@@ -72,36 +72,10 @@ namespace AtomicEngine
                 throw new InvalidOperationException("NativeCore.SubscribeToEvent - unable to find native receiver instance");
             }
 
-            RefCounted refcounted;
-            if (!w.TryGetTarget(out refcounted))
-            {
-                throw new InvalidOperationException("NativeCore.SubscribeToEvent - attempting to subscribe a GC'd AObject");
-            }
-
-            IntPtr nativeSender = IntPtr.Zero;
-            if (sender != null)
-            {
-                nativeSender = sender.nativeInstance;
-                if (!nativeLookup.TryGetValue(sender.nativeInstance, out w))
-                {
-                    throw new InvalidOperationException("NativeCore.SubscribeToEvent - unable to find native sender instance");
-                }
-
-                if (!w.TryGetTarget(out refcounted))
-                {
-                    throw new InvalidOperationException("NativeCore.SubscribeToEvent - attempting to subscribe to a GC'd AObject");
-                }
-            }
-
-            eventReceivers.Add(new EventSubscription(receiver, nativeSender));
+            eventReceivers.Add(new EventSubscription(receiver, sender));
         }
 
         static internal void UnsubscribeFromEvent(AObject receiver, uint eventType)
-        {
-            UnsubscribeFromEvent(receiver, null, eventType);
-        }
-
-        static internal void UnsubscribeFromEvent(AObject receiver, RefCounted sender, uint eventType)
         {
             List<EventSubscription> eventReceivers;
             if (!eventReceiverLookup.TryGetValue(eventType, out eventReceivers))
@@ -113,8 +87,7 @@ namespace AtomicEngine
                 if (!er.Receiver.TryGetTarget(out obj))
                     continue; // GC'd
 
-                if (obj == receiver &&
-                    (sender == null || er.Sender == sender.nativeInstance))
+                if (obj == receiver)
                 {
                     eventReceivers.Remove(er);
                     return;
@@ -188,6 +161,9 @@ namespace AtomicEngine
                 if (!er.Receiver.TryGetTarget(out receiver))
                     continue;
 
+                if (er.Sender != null && er.Sender != managedSender)
+                    continue;
+
                 if (scriptMap == null)
                 {
                     if (svmDepth == svmMax)
@@ -200,20 +176,7 @@ namespace AtomicEngine
                     nativeEventData = NativeEvents.GetNativeEventData(eventType, scriptMap);
                 }
 
-                if (managedSender != null && er.Sender == sender)
-                {
-                    receiver.HandleEvent(managedSender, eventType, scriptMap);
-                }
-                else if (er.Sender == IntPtr.Zero)
-                {
-                    if (nativeEventData != null)
-                    {
-                        if (receiver.HandleNativeEvent(eventType, nativeEventData))
-                            continue;
-                    }
-
-                    receiver.HandleEvent(eventType, scriptMap);
-                }
+                receiver.HandleEvent(eventType, scriptMap, nativeEventData);
             }
 
             if (scriptMap != null)
@@ -453,12 +416,13 @@ namespace AtomicEngine
         internal struct EventSubscription
         {
             public WeakReference<AObject> Receiver;
-            public IntPtr Sender;
+            // This is a hard reference and will keep the AObject alive, we may need to evaluate this
+            public AObject Sender;
 
-            public EventSubscription(AObject obj, IntPtr source)
+            public EventSubscription(AObject receiver, AObject sender = null)
             {
-                Receiver = new WeakReference<AObject>(obj);
-                Sender = source;
+                Receiver = new WeakReference<AObject>(receiver);
+                Sender = sender;
             }
         }
 

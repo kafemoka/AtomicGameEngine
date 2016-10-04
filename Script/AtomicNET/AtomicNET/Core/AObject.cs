@@ -33,56 +33,31 @@ namespace AtomicEngine
         }
         private Dictionary<uint, NativeEventDelegate> nativeHandlers;
 
-
-        private Dictionary<SenderEventKey, SenderEventDelegate> SenderEventHandlers
-        {
-            get
-            {
-                if (senderEventHandlers == null)
-                {
-                    SenderEventKeyComparer comparer = SenderEventKeyComparer.Default;
-                    senderEventHandlers = new Dictionary<SenderEventKey, SenderEventDelegate>(comparer);
-                }
-                return senderEventHandlers;
-            }
-        }
-        private Dictionary<SenderEventKey, SenderEventDelegate> senderEventHandlers;
-
         public static T GetSubsystem<T>() where T : AObject
         {
             return AtomicNET.GetSubsystem<T>();
         }
 
-        internal bool HandleNativeEvent(uint eventType, NativeEventData eventData)
+        internal void HandleEvent(uint eventType, ScriptVariantMap eventData, NativeEventData nativeEventData)
         {
             NativeEventDelegate nativeDelegate;
 
-            if (!NativeEventHandlers.TryGetValue(eventType, out nativeDelegate))
-                return false;
-
-            nativeDelegate(eventData);
-
-            return true;
-
-        }
-
-        internal void HandleEvent(uint eventType, ScriptVariantMap eventData)
-        {
-            EventDelegate eventDelegate;
-
-            if (!EventHandlers.TryGetValue(eventType, out eventDelegate))
+            if (NativeEventHandlers.TryGetValue(eventType, out nativeDelegate))
             {
-                // This should be a warning
+                nativeDelegate(nativeEventData);
                 return;
             }
+            
+            EventDelegate eventDelegate;
 
-            eventDelegate(eventType, eventData);
-        }
+            if (EventHandlers.TryGetValue(eventType, out eventDelegate))
+            {
+                eventDelegate(eventType, eventData);
+                return;
+            }
+          
+            // Reaching here should be a warning, possibly an error
 
-        internal void HandleEvent(AObject sender, uint eventType, ScriptVariantMap eventData)
-        {
-            var key = new SenderEventKey(eventType, sender.nativeInstance);
-            senderEventHandlers[key](sender, eventType, eventData);
         }
 
         public void SubscribeToEvent(uint eventType, EventDelegate eventDelegate)
@@ -97,7 +72,38 @@ namespace AtomicEngine
             SubscribeToEvent(AtomicNET.StringToStringHash(eventType), eventDelegate);
         }
 
+        public void UnsubscribeFromEvent(uint eventType)
+        {
+            NativeCore.UnsubscribeFromEvent(this, eventType);
+            EventHandlers.Remove(eventType);
+            NativeEventHandlers.Remove(eventType);
+        }
+
+        public void SubscribeToEvent(AObject sender, uint eventType, EventDelegate eventDelegate)
+        {
+            if (sender == null)
+            {
+                throw new InvalidOperationException("AObject.SubscribeToEvent - trying to subscribe to events from a null object");
+            }
+
+            // Move this
+            NETCore.RegisterNETEventType(eventType);
+            NativeCore.SubscribeToEvent(this, sender, eventType);
+        }
+
+        public void SubscribeToEvent(AObject sender, string eventType, EventDelegate eventDelegate)
+        {
+            SubscribeToEvent(sender, AtomicNET.StringToStringHash(eventType), eventDelegate);
+        }
+
+        // Native events
+
         public void SubscribeToEvent<T>(NativeEventDelegate<T> eventDelegate) where T : NativeEventData
+        {
+            SubscribeToEvent<T>(null, eventDelegate);
+        }
+
+        public void SubscribeToEvent<T>(AObject sender, NativeEventDelegate<T> eventDelegate) where T : NativeEventData
         {
             uint eventType = NativeEvents.GetEventID<T>();
 
@@ -111,43 +117,18 @@ namespace AtomicEngine
 
             NativeEventHandlers[eventType] = (eventData) =>
             {
-                eventDelegate((T) eventData);
+                eventDelegate((T)eventData);
             };
 
-            NativeCore.SubscribeToEvent(this, eventType);
-
-        }
-
-        public void UnsubscribeFromEvent(uint eventType)
-        {
-            NativeCore.UnsubscribeFromEvent(this, eventType);
-            EventHandlers.Remove(eventType);
-        }
-
-        public void SubscribeToEvent(AObject sender, uint eventType, SenderEventDelegate eventDelegate)
-        {
-            if (sender == null)
+            if (sender != null)
             {
-                throw new InvalidOperationException("AObject.SubscribeToEvent - trying to subscribe to events from a null object");
+                NativeCore.SubscribeToEvent(this, sender, eventType);
             }
-
-            // Move this
-            NETCore.RegisterNETEventType(eventType);
-            var key = new SenderEventKey(eventType, sender.nativeInstance);
-            SenderEventHandlers[key] = eventDelegate;
-            NativeCore.SubscribeToEvent(this, sender, eventType);
-        }
-
-        public void SubscribeToEvent(AObject sender, string eventType, SenderEventDelegate eventDelegate)
-        {
-            SubscribeToEvent(sender, AtomicNET.StringToStringHash(eventType), eventDelegate);
-        }
-
-        public void UnsubscribeFromEvent(AObject sender, uint eventType)
-        {
-            NativeCore.UnsubscribeFromEvent(this, sender, eventType);
-            var key = new SenderEventKey(eventType, sender.nativeInstance);
-            SenderEventHandlers.Remove(key);
+            else
+            {
+                NativeCore.SubscribeToEvent(this, eventType);
+            }
+           
         }
 
         public void SendEvent(string eventType, ScriptVariantMap eventData = null)
@@ -160,43 +141,6 @@ namespace AtomicEngine
         [DllImport(Constants.LIBNAME, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern void csi_Atomic_AObject_SendEvent(IntPtr self, string eventType, IntPtr variantMap);
 
-        private struct SenderEventKey
-        {
-            public readonly uint EventType;
-            public readonly IntPtr Sender; 
-
-            public SenderEventKey(uint eventType, IntPtr sender)
-            {
-                EventType = eventType;
-                Sender = sender;
-            }
-        }
-
-        // Use a comparer to avoid boxing on struct .Equals override
-        private class SenderEventKeyComparer : IEqualityComparer<SenderEventKey>
-        {
-            public static readonly SenderEventKeyComparer Default = new SenderEventKeyComparer();
-
-            private SenderEventKeyComparer() { }
-
-            public bool Equals(SenderEventKey lhs, SenderEventKey rhs)
-            {
-                return (lhs.EventType == rhs.EventType &&
-                    lhs.Sender == rhs.Sender);
-            }
-
-            public int GetHashCode(SenderEventKey key)
-            {
-                // Based on http://stackoverflow.com/a/263416/156328
-                unchecked
-                {
-                    int hash = 17;
-                    hash = hash * 23 + key.EventType.GetHashCode();
-                    hash = hash * 23 + key.Sender.GetHashCode();
-                    return hash;
-                }
-            }
-        }
     }
 
 }
