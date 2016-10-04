@@ -30,6 +30,21 @@ namespace AtomicEngine
 
     public static partial class NativeEvents
     {
+        class NativeEventDataCache
+        {
+            public NativeEventDataCache(Type type)
+            {
+                eventData = new NativeEventData[eventDataMax];
+
+                for (int i = 0; i < eventDataMax; i++)
+                    eventData[i] = (NativeEventData)Activator.CreateInstance(type);
+            }
+
+            public NativeEventData[] eventData;
+            public int eventDataDepth = 0;
+            public const int eventDataMax = 256;
+        }
+
         public static uint GetEventID<T>() where T : NativeEventData
         {
             uint eventID;
@@ -49,19 +64,26 @@ namespace AtomicEngine
 
             eventIDLookup[type] = eventID;
             typeLookup[eventID] = type;
+
+            // create event data cache
+            var cache = new NativeEventDataCache(type);
+            eventCache[type] = cache;
+            eventCacheByEventID[eventID] = cache;
+
         }
 
-        public static NativeEventData InstantiateNativeEventData(uint eventID, ScriptVariantMap eventMap)
+        public static NativeEventData GetNativeEventData(uint eventID, ScriptVariantMap eventMap)
         {
-            Type dataType;
+            NativeEventDataCache cache;
 
-            if (typeLookup.TryGetValue(eventID, out dataType))
+            if (eventCacheByEventID.TryGetValue(eventID, out cache))
             {
-                NativeEventData eventData = (NativeEventData) Activator.CreateInstance(dataType);
-                if (eventData.GetType() == typeof(KeyDownEventData))
+                if (cache.eventDataDepth == NativeEventDataCache.eventDataMax)
                 {
-                    eventData.scriptMap = eventMap;
+                    throw new InvalidOperationException("GetNativeEventData - max recursive event");
                 }
+
+                var eventData = cache.eventData[cache.eventDataDepth++];
                 eventData.scriptMap = eventMap;
                 return eventData;
             }
@@ -69,8 +91,34 @@ namespace AtomicEngine
             return null;
         }
 
+        public static void ReleaseNativeEventData(NativeEventData eventData)
+        {
+            Type dataType = eventData.GetType();
+            eventData.scriptMap = null;
 
+            NativeEventDataCache cache;
+
+            if (eventCache.TryGetValue(dataType, out cache))
+            {
+#if DEBUG
+                if (cache.eventData[cache.eventDataDepth - 1] != eventData)
+                {
+                    throw new InvalidOperationException("ReleaseNativeEventData - unexpected event data");
+                }    
+#endif                                
+                cache.eventDataDepth--;
+            }
+
+        }
+
+        // event cache
+        static Dictionary<Type, NativeEventDataCache> eventCache = new Dictionary<Type, NativeEventDataCache>();
+        static Dictionary<uint, NativeEventDataCache> eventCacheByEventID = new Dictionary<uint, NativeEventDataCache>();
+
+        // native event type -> native eventType hash id
         static Dictionary<Type, uint> eventIDLookup = new Dictionary<Type, uint>();
+
+        // native eventType hash id -> NativeEvent type
         static Dictionary<uint, Type> typeLookup = new Dictionary<uint, Type>();
     }
 

@@ -401,7 +401,7 @@ void CSModuleWriter::GenerateManagedNativeEvents(String& sourceOut)
         const String& eventName = event->GetEventName();
         const String& eventID = event->GetEventID();
 
-        String line = ToString("public partial class %sEventData : NativeEventData\n", event->GetEventName().CString());
+        String line = ToString("public partial class %sEvent : NativeEventData\n", event->GetEventName().CString());
 
         source += IndentLine(line);
 
@@ -536,7 +536,7 @@ void CSModuleWriter::GenerateManagedModuleClass(String& sourceOut)
     {
         JSBEvent* event = events[i];
 
-        line = ToString("NativeEvents.RegisterEventID<%sEventData>(\"%s\");\n", event->GetEventName().CString(), event->GetEventName().CString());
+        line = ToString("NativeEvents.RegisterEventID<%sEvent>(\"%s\");\n", event->GetEventName().CString(), event->GetEventName().CString());
         source += IndentLine(line);
     }
 

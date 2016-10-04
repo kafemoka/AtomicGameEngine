@@ -179,7 +179,6 @@ namespace AtomicEngine
 
             // iterate over copy of list so we can modify it while running
             ScriptVariantMap scriptMap = null;
-            bool nativeEventDataCreated = false;
             NativeEventData nativeEventData = null;
 
             AObject receiver;
@@ -198,6 +197,7 @@ namespace AtomicEngine
 
                     scriptMap = svm[svmDepth++];
                     scriptMap.CopyVariantMap(eventData);
+                    nativeEventData = NativeEvents.GetNativeEventData(eventType, scriptMap);
                 }
 
                 if (managedSender != null && er.Sender == sender)
@@ -206,21 +206,25 @@ namespace AtomicEngine
                 }
                 else if (er.Sender == IntPtr.Zero)
                 {
-                    if (!nativeEventDataCreated && nativeEventData == null)
-                    {
-                        nativeEventDataCreated = true;
-                        nativeEventData = NativeEvents.InstantiateNativeEventData(eventType, scriptMap);
-                    }
-
                     if (nativeEventData != null)
-                        receiver.HandleNativeEvent(eventType, nativeEventData);
+                    {
+                        if (receiver.HandleNativeEvent(eventType, nativeEventData))
+                            continue;
+                    }
 
                     receiver.HandleEvent(eventType, scriptMap);
                 }
             }
 
             if (scriptMap != null)
+            {
                 svmDepth--;
+
+                if (nativeEventData != null)
+                {
+                    NativeEvents.ReleaseNativeEventData(nativeEventData);
+                }
+            }
 
         }
 

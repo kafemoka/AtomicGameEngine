@@ -53,14 +53,16 @@ namespace AtomicEngine
             return AtomicNET.GetSubsystem<T>();
         }
 
-        internal void HandleNativeEvent(uint eventType, NativeEventData eventData)
+        internal bool HandleNativeEvent(uint eventType, NativeEventData eventData)
         {
             NativeEventDelegate nativeDelegate;
 
             if (!NativeEventHandlers.TryGetValue(eventType, out nativeDelegate))
-                return;
+                return false;
 
             nativeDelegate(eventData);
+
+            return true;
 
         }
 
