@@ -12,6 +12,9 @@ namespace AtomicEngine
         static protected void RegisterSubsystems()
         {
             // TODO: Refactor these registrations
+
+            AtomicNET.RegisterSubsystem("Engine");
+
             AtomicNET.RegisterSubsystem("FileSystem");
 
             AtomicNET.RegisterSubsystem("Graphics");

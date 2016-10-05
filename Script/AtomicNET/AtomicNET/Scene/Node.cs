@@ -24,6 +24,17 @@ namespace AtomicEngine
             return (T)CreateComponent(type.Name, mode, id);
         }
 
+        public void AddComponent(Component component)
+        {
+            var type = component.GetType();
+
+            if (type.GetTypeInfo().IsSubclassOf(typeof(CSComponent)))
+            {
+                CSComponentCore.RegisterInstance((CSComponent)component);
+            }
+
+            AddComponent(component, 0, CreateMode.REPLICATED);
+        }
 
         public void GetChildrenWithComponent<T>(Vector<Node> dest, bool recursive = false)
         {

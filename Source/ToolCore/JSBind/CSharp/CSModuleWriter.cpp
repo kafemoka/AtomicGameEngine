@@ -482,17 +482,6 @@ void CSModuleWriter::GenerateManagedNativeEvents(String& sourceOut)
 
         }
 
-/*
-        int Key
-        {
-            get
-        {
-            return GetInt("Key");
-        }
-
-        }
-*/
-
         Dedent();
 
         source += IndentLine("}\n\n");
