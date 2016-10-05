@@ -423,6 +423,8 @@ void CSModuleWriter::GenerateManagedNativeEvents(String& sourceOut)
 
             if (!cls)
                 typeName = typeName.ToLower();
+            else
+                typeName = cls->GetName();
 
             if (typeName == "int" || typeName == "float" ||
                 typeName == "bool" || typeName == "string" || typeName == "enum" || cls)
