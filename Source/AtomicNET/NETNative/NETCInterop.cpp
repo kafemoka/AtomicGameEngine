@@ -5,6 +5,7 @@
 #include <Atomic/Graphics/VertexBuffer.h>
 #include <Atomic/Graphics/Viewport.h>
 #include <Atomic/Graphics/Graphics.h>
+#include <Atomic/Graphics/Light.h>
 
 
 #include "NETCore.h"
@@ -164,6 +165,64 @@ namespace Atomic
 
             graphics->SetShaderParameter(param, *matrix);
         }
+
+// Light
+
+        ATOMIC_EXPORT_API void csi_Atomic_Light_SetShadowBias(Light* light, BiasParameters* parameters)
+        {
+            if (!parameters)
+                return;
+
+            light->SetShadowBias(*parameters);
+
+        }
+
+        ATOMIC_EXPORT_API void csi_Atomic_Light_GetShadowBias(Light* light, BiasParameters* parameters)
+        {
+            if (!parameters)
+                return;
+
+            *parameters = light->GetShadowBias();
+
+        }
+
+
+        ATOMIC_EXPORT_API void csi_Atomic_Light_SetShadowCascade(Light* light, CascadeParameters* parameters)
+        {
+            if (!parameters)
+                return;
+
+            light->SetShadowCascade(*parameters);
+
+        }
+
+        ATOMIC_EXPORT_API void csi_Atomic_Light_GetShadowCascade(Light* light, CascadeParameters* parameters)
+        {
+            if (!parameters)
+                return;
+
+            *parameters = light->GetShadowCascade();
+
+        }
+
+
+        ATOMIC_EXPORT_API void csi_Atomic_Light_SetShadowFocus(Light* light,FocusParameters* parameters)
+        {
+            if (!parameters)
+                return;
+
+            light->SetShadowFocus(*parameters);
+
+        }
+
+        ATOMIC_EXPORT_API void csi_Atomic_Light_GetShadowFocus(Light* light, FocusParameters* parameters)
+        {
+            if (!parameters)
+                return;
+
+            *parameters = light->GetShadowFocus();
+        }
+
 
 #ifdef ATOMIC_PLATFORM_IOS
         ATOMIC_EXPORT_API void SDL_IOS_Init(const char *resourceDir, const char *documentsDir)
