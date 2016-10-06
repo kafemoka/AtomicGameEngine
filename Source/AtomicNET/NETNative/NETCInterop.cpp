@@ -9,6 +9,8 @@
 #include <Atomic/Graphics/Light.h>
 #include <Atomic/Graphics/Octree.h>
 
+#include <Atomic/Navigation/NavigationMesh.h>
+
 
 #include "NETCore.h"
 
@@ -271,6 +273,35 @@ namespace Atomic
         }
 
         
+        // NavigationMesh
+
+        ATOMIC_EXPORT_API void csi_Atomic_NavigationMesh_FindPath_FreeResult(PODVector<Vector3>* resultVector)
+        {
+            delete resultVector;
+        }
+
+
+        // Any result vector must be freed with csi_Atomic_NavigationMesh_FindPath_FreeResult
+        ATOMIC_EXPORT_API Vector3* csi_Atomic_NavigationMesh_FindPath(NavigationMesh *navMesh, Vector3* start, Vector3* end, Vector3 *extents, void** resultVector, int *count)
+        {
+            PODVector<Vector3>* results = new PODVector<Vector3>();
+
+            navMesh->FindPath(*results, *start, *end, *extents);
+
+            *count = 0;
+            *resultVector = 0;
+
+            if (results->Size() == 0)
+            {
+                delete results;
+                return NULL;
+            }
+
+            *count = results->Size();
+            *resultVector = results;
+            return &(*results)[0];
+        }
+
 
 
 #ifdef ATOMIC_PLATFORM_IOS
