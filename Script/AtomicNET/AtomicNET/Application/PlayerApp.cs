@@ -22,6 +22,7 @@ namespace AtomicEngine
 
             AtomicNET.RegisterSubsystem("Input");
             AtomicNET.RegisterSubsystem("Renderer");
+            AtomicNET.RegisterSubsystem("UI");
 
             AtomicNET.RegisterSubsystem("ResourceCache");
             AtomicNET.Cache = AtomicNET.GetSubsystem<ResourceCache>();

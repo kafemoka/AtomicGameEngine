@@ -1,4 +1,5 @@
 
+using System;
 using System.Runtime.InteropServices;
 
 namespace AtomicEngine
@@ -45,4 +46,90 @@ namespace AtomicEngine
         public float Quantize;
         public float MinView;
     }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct Ray
+    {
+        public Vector3 Origin;
+        public Vector3 Direction;
+
+        public Ray(Vector3 origin, Vector3 direction)
+        {
+            Origin = origin;
+            Direction = Vector3.Normalize(direction);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is Ray))
+                return false;
+
+            return (this == (Ray)obj);
+        }
+
+        public static bool operator ==(Ray left, Ray right)
+        {
+            return ((left.Origin == right.Origin) && (left.Direction == right.Direction));
+        }
+
+        public static bool operator !=(Ray left, Ray right)
+        {
+            return ((left.Origin != right.Origin) || (left.Direction != right.Direction));
+        }
+
+        public Vector3 Project(Vector3 point)
+        {
+            var offset = point - Origin;
+            return Origin + Vector3.Dot(offset, Direction) * Direction;
+        }
+
+        public override int GetHashCode()
+        {
+            return Origin.GetHashCode() + Direction.GetHashCode();
+        }
+
+        public float Distance(Vector3 point)
+        {
+            var projected = Project(point);
+            return (point - projected).Length;
+        }
+
+        public Vector3 ClosestPoint(Ray otherRay)
+        {
+            var p13 = Origin - otherRay.Origin;
+            var p43 = otherRay.Direction;
+            Vector3 p21 = Direction;
+
+            float d1343 = Vector3.Dot(p13, p43);
+            float d4321 = Vector3.Dot(p43, p21);
+            float d1321 = Vector3.Dot(p13, p21);
+            float d4343 = Vector3.Dot(p43, p43);
+            float d2121 = Vector3.Dot(p21, p21);
+
+            float d = d2121 * d4343 - d4321 * d4321;
+            if (Math.Abs(d) < float.Epsilon)
+                return Origin;
+            float n = d1343 * d4321 - d1321 * d4343;
+            float a = n / d;
+
+            return Origin + a * Direction;
+        }
+
+        public float HitDistance(Plane plane)
+        {
+            float d = Vector3.Dot(plane.Normal, Direction);
+            if (Math.Abs(d) >= float.Epsilon)
+            {
+                float t = -(Vector3.Dot(plane.Normal, Origin) + plane.D) / d;
+                if (t >= 0.0f)
+                    return t;
+                else
+                    return float.PositiveInfinity;
+            }
+            else
+                return float.PositiveInfinity;
+        }
+
+    }
+
 }

@@ -5,7 +5,9 @@
 #include <Atomic/Graphics/VertexBuffer.h>
 #include <Atomic/Graphics/Viewport.h>
 #include <Atomic/Graphics/Graphics.h>
+#include <Atomic/Graphics/Camera.h>
 #include <Atomic/Graphics/Light.h>
+#include <Atomic/Graphics/Octree.h>
 
 
 #include "NETCore.h"
@@ -50,14 +52,14 @@ namespace Atomic
         ATOMIC_EXPORT_API const char* csi_Atomic_AObject_GetTypeName(Object* self)
         {
 
-           static String returnValue;
-           returnValue = self->GetTypeName();
-           return returnValue.CString();
+            static String returnValue;
+            returnValue = self->GetTypeName();
+            return returnValue.CString();
         }
 
         ATOMIC_EXPORT_API int csi_Atomic_RefCounted_Refs(RefCounted* self)
         {
-           return self->Refs();
+            return self->Refs();
         }
 
 
@@ -149,7 +151,7 @@ namespace Atomic
 
         }
 
-        ATOMIC_EXPORT_API void* csi_Atomic_VertexBuffer_Lock(VertexBuffer* vb , unsigned start, unsigned count, bool discard)
+        ATOMIC_EXPORT_API void* csi_Atomic_VertexBuffer_Lock(VertexBuffer* vb, unsigned start, unsigned count, bool discard)
         {
             if (!vb)
                 return nullptr;
@@ -166,7 +168,7 @@ namespace Atomic
             graphics->SetShaderParameter(param, *matrix);
         }
 
-// Light
+        // Light
 
         ATOMIC_EXPORT_API void csi_Atomic_Light_SetShadowBias(Light* light, BiasParameters* parameters)
         {
@@ -206,7 +208,7 @@ namespace Atomic
         }
 
 
-        ATOMIC_EXPORT_API void csi_Atomic_Light_SetShadowFocus(Light* light,FocusParameters* parameters)
+        ATOMIC_EXPORT_API void csi_Atomic_Light_SetShadowFocus(Light* light, FocusParameters* parameters)
         {
             if (!parameters)
                 return;
@@ -222,6 +224,53 @@ namespace Atomic
 
             *parameters = light->GetShadowFocus();
         }
+
+        // Camera
+
+        ATOMIC_EXPORT_API void csi_Atomic_Camera_GetScreenRay(Camera* camera, float x, float y, Ray* ray)
+        {
+            if (!camera || !ray)
+                return;
+
+            *ray = camera->GetScreenRay(x, y);
+        }
+
+        // Octree
+
+        ATOMIC_EXPORT_API void csi_Atomic_Octree_Raycast_FreeResult(PODVector<RayQueryResult>* resultVector)
+        {
+            delete resultVector;
+        }
+    
+
+        // Any result vector must be freed with csi_Atomic_Octree_Raycast_FreeResult
+        ATOMIC_EXPORT_API RayQueryResult* csi_Atomic_Octree_Raycast(Octree *octree, const Ray& ray, const RayQueryLevel& level, float maxDistance, unsigned int flags, unsigned int viewMask,
+            bool single, void** resultVector, int *count) 
+        {
+            PODVector<RayQueryResult>* results = new PODVector<RayQueryResult>();
+
+            *count = 0;
+            *resultVector = 0;
+
+            RayOctreeQuery query(*results, ray, level, maxDistance, flags, viewMask);
+            
+            if (single)
+                octree->RaycastSingle(query);
+            else
+                octree->Raycast(query);
+
+            if (results->Size() == 0)
+            {
+                delete results;
+                return NULL;
+            }
+
+            *count = results->Size();
+            *resultVector = results;
+            return &(*results)[0];
+        }
+
+        
 
 
 #ifdef ATOMIC_PLATFORM_IOS
