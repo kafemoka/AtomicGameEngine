@@ -12,6 +12,10 @@
 
 #include <Atomic/Navigation/NavigationMesh.h>
 
+#include <Atomic/Physics/PhysicsWorld.h>
+
+#include <Atomic/Input/Controls.h>
+
 
 #include "NETCore.h"
 
@@ -390,6 +394,77 @@ namespace Atomic
                 return 0;
 
             return skeleton->GetNumBones();
+        }
+
+        // PhysicsWorld
+
+        ATOMIC_EXPORT_API void csi_Atomic_PhysicsWorld_RaycastSingle(PhysicsWorld* world, Ray* ray, float maxDistance, unsigned collisionMask, PhysicsRaycastResult* result)
+        {
+            if (!world || !ray || !result)
+                return;
+
+            world->RaycastSingle(*result, *ray, maxDistance, collisionMask);
+
+        }
+
+        // Controls
+        
+        ATOMIC_EXPORT_API unsigned csi_Atomic_Controls_GetButtons(Controls *controls)
+        {
+            return controls->buttons_;
+        }
+
+        ATOMIC_EXPORT_API void csi_Atomic_Controls_SetButtons(Controls *controls, unsigned value)
+        {
+            controls->buttons_ = value;
+        }
+
+        ATOMIC_EXPORT_API float csi_Atomic_Controls_GetYaw(Controls *controls)
+        {
+            return controls->yaw_;
+        }
+
+        ATOMIC_EXPORT_API void csi_Atomic_Controls_SetYaw(Controls *controls, float value)
+        {
+            controls->yaw_ = value;
+        }
+
+        ATOMIC_EXPORT_API float csi_Atomic_Controls_GetPitch(Controls *controls)
+        {
+            return controls->pitch_;
+        }
+
+        ATOMIC_EXPORT_API void csi_Atomic_Controls_SetPitch(Controls *controls, float value)
+        {
+            controls->pitch_ = value;
+        }
+
+        ATOMIC_EXPORT_API void csi_Atomic_Controls_Reset(Controls *_target)
+        {
+            _target->Reset();
+        }
+
+        ATOMIC_EXPORT_API void csi_Atomic_Controls_Set(Controls *_target, unsigned int buttons, int down)
+        {
+            _target->Set(buttons, down);
+        }
+
+        ATOMIC_EXPORT_API int csi_Atomic_Controls_IsDown(Controls *_target, unsigned int button)
+        {
+            return _target->IsDown(button);
+        }
+
+        ATOMIC_EXPORT_API Controls*  csi_Atomic_Controls_Create()
+        {
+            return new Controls();
+        }
+
+        ATOMIC_EXPORT_API void  csi_Atomic_Controls_Destroy(Controls *controls)
+        {
+            if (!controls)
+                return;
+
+            delete controls;
         }
 
 #ifdef ATOMIC_PLATFORM_IOS
