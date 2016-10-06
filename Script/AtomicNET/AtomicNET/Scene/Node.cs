@@ -9,6 +9,25 @@ namespace AtomicEngine
     public partial class Node : Animatable
     {
 
+        public void RemoveComponent<T>() where T : Component
+        {
+            var type = typeof(T);
+
+            var name = type.Name;
+
+            // TODO: This doesn't allow removing of a specific component type derived from CSComponent
+            if (type.GetTypeInfo().IsSubclassOf(typeof(CSComponent)))
+            {
+                name = "CSComponent";
+
+                throw new InvalidOperationException("Node.RemoveComponent - Add functionality to remove specific CSComponent derived instances");
+            }
+
+            RemoveComponent(name);
+
+        }
+
+
         public T CreateComponent<T>(CreateMode mode = CreateMode.REPLICATED, uint id = 0) where T : Component
         {
             var type = typeof(T);

@@ -8,6 +8,7 @@
 #include <Atomic/Graphics/Camera.h>
 #include <Atomic/Graphics/Light.h>
 #include <Atomic/Graphics/Octree.h>
+#include <Atomic/Graphics/AnimatedModel.h>
 
 #include <Atomic/Navigation/NavigationMesh.h>
 
@@ -302,7 +303,94 @@ namespace Atomic
             return &(*results)[0];
         }
 
+        // AnimatedModel
 
+        ATOMIC_EXPORT_API Skeleton* csi_Atomic_AnimatedModel_GetSkeleton(AnimatedModel *animatedModel)
+        {
+            if (!animatedModel)
+                return 0;
+
+            return &animatedModel->GetSkeleton();
+        }
+
+        // Skeleton
+
+        ATOMIC_EXPORT_API void csi_Atomic_Skeleton_SetRootBoneIndex(Skeleton *skeleton, unsigned index)
+        {
+            if (!skeleton)
+                return;
+
+            skeleton->SetRootBoneIndex(index);
+        }
+
+        ATOMIC_EXPORT_API void csi_Atomic_Skeleton_Define(Skeleton *skeleton, Skeleton *src)
+        {
+            if (!skeleton || !src)
+                return;
+
+            skeleton->Define(*src);
+        }
+
+
+        ATOMIC_EXPORT_API void csi_Atomic_Skeleton_Reset(Skeleton *skeleton)
+        {
+            if (!skeleton)
+                return;
+
+            skeleton->Reset();
+        }
+
+        ATOMIC_EXPORT_API void csi_Atomic_Skeleton_ResetSilent(Skeleton *skeleton)
+        {
+            if (!skeleton)
+                return;
+
+            skeleton->ResetSilent();
+        }
+
+        ATOMIC_EXPORT_API void csi_Atomic_Skeleton_ClearBones(Skeleton *skeleton)
+        {
+            if (!skeleton)
+                return;
+
+            skeleton->ClearBones();
+        }
+
+        ATOMIC_EXPORT_API Bone* csi_Atomic_Skeleton_GetRootBone(Skeleton *skeleton)
+        {
+            if (!skeleton)
+                return 0;
+
+            return skeleton->GetRootBone();
+        }
+
+
+        ATOMIC_EXPORT_API Bone* csi_Atomic_Skeleton_GetBone_ByIndex(Skeleton *skeleton, unsigned index)
+        {
+            if (!skeleton)
+                return 0;
+
+            if (index >= skeleton->GetNumBones())
+                return 0;
+
+            return skeleton->GetBone(index);            
+        }
+
+        ATOMIC_EXPORT_API Bone* csi_Atomic_Skeleton_GetBone_ByName(Skeleton *skeleton, const char* name)
+        {
+            if (!skeleton || !name || !strlen(name))
+                return 0;
+
+            return skeleton->GetBone(name);
+        }
+
+        ATOMIC_EXPORT_API unsigned csi_Atomic_Skeleton_GetNumBones(Skeleton *skeleton)
+        {
+            if (!skeleton)
+                return 0;
+
+            return skeleton->GetNumBones();
+        }
 
 #ifdef ATOMIC_PLATFORM_IOS
         ATOMIC_EXPORT_API void SDL_IOS_Init(const char *resourceDir, const char *documentsDir)

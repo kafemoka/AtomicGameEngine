@@ -132,4 +132,19 @@ namespace AtomicEngine
 
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    public struct WeakPtr
+    {
+        IntPtr ptr;
+        IntPtr refCountPtr;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct AtomicString
+    {
+        public uint Length;
+        public uint Capacity;
+        public IntPtr Buffer;
+    }
+
 }
