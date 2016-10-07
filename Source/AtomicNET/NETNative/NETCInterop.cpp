@@ -243,6 +243,40 @@ namespace Atomic
             *ray = camera->GetScreenRay(x, y);
         }
 
+
+        ATOMIC_EXPORT_API void csi_Atomic_Camera_SetClipPlane(Camera* camera, Plane* plane)
+        {
+            if (!camera || !plane)
+                return;
+
+            camera->SetClipPlane(*plane);
+        }
+
+        ATOMIC_EXPORT_API void csi_Atomic_Camera_GetClipPlane(Camera* camera, Plane* plane)
+        {
+            if (!camera || !plane)
+                return;
+
+            *plane = camera->GetClipPlane();
+        }
+
+        ATOMIC_EXPORT_API void csi_Atomic_Camera_SetReflectionPlane(Camera* camera, Plane* plane)
+        {
+            if (!camera || !plane)
+                return;
+
+            camera->SetReflectionPlane(*plane);
+        }
+
+
+        ATOMIC_EXPORT_API void csi_Atomic_Camera_GetReflectionPlane(Camera* camera, Plane* plane)
+        {
+            if (!camera || !plane)
+                return;
+
+            *plane = camera->GetReflectionPlane();
+        }
+
         // Octree
 
         ATOMIC_EXPORT_API void csi_Atomic_Octree_Raycast_FreeResult(PODVector<RayQueryResult>* resultVector)
