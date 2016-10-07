@@ -65,7 +65,7 @@ bool JSBFunctionSignature::Match(JSBFunction* function)
     if (name_ != function->GetName())
         return false;
 
-    Vector<JSBFunctionType*>& parameters = function->GetParameters();
+    const Vector<JSBFunctionType*>& parameters = function->GetParameters();
 
     if (types_.Size() != parameters.Size())
         return false;
@@ -323,7 +323,7 @@ void JSBClass::Process()
         // skip function if only one parameter of type Context, if not Constuctor
         if (!function->IsConstructor())
         {
-            Vector<JSBFunctionType*>& parameters = function->GetParameters();
+            const Vector<JSBFunctionType*>& parameters = function->GetParameters();
 
             if (parameters.Size() == 1 && parameters.At(0)->type_->asClassType())
             {

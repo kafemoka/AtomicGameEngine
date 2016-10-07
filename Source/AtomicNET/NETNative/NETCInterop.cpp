@@ -11,6 +11,7 @@
 #include <Atomic/Graphics/AnimatedModel.h>
 
 #include <Atomic/Navigation/NavigationMesh.h>
+#include <Atomic/Navigation/CrowdManager.h>
 
 #include <Atomic/Physics/PhysicsWorld.h>
 
@@ -466,6 +467,25 @@ namespace Atomic
 
             delete controls;
         }
+
+        // CrowdManager
+
+        ATOMIC_EXPORT_API void  csi_Atomic_CrowdManager_GetObstacleAvoidanceParams(CrowdManager *manager, unsigned obstacleAvoidanceType, CrowdObstacleAvoidanceParams* parms)
+        {
+            if (!manager || !parms)
+                return;
+
+            *parms = manager->GetObstacleAvoidanceParams(obstacleAvoidanceType);
+        }
+
+        ATOMIC_EXPORT_API void  csi_Atomic_CrowdManager_SetObstacleAvoidanceParams(CrowdManager *manager, unsigned obstacleAvoidanceType, CrowdObstacleAvoidanceParams* parms)
+        {
+            if (!manager || !parms)
+                return;
+
+            manager->SetObstacleAvoidanceParams(obstacleAvoidanceType, *parms);
+        }
+
 
 #ifdef ATOMIC_PLATFORM_IOS
         ATOMIC_EXPORT_API void SDL_IOS_Init(const char *resourceDir, const char *documentsDir)

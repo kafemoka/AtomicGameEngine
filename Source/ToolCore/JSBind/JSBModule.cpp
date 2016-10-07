@@ -161,7 +161,7 @@ void JSBModule::ProcessOverloads()
 
                 if (!_sig.IsArray())
                 {
-                    ErrorExit("Bad overload defintion");
+                    ErrorExit("Bad overload definition");
                 }
 
                 JSONArray sig = _sig.GetArray();
