@@ -98,6 +98,14 @@ namespace AtomicEngine
 
         // Native events
 
+
+        public void UnsubscribeFromEvent<T>() where T : NativeEventData
+        {
+            uint eventType = NativeEvents.GetEventID<T>();
+            UnsubscribeFromEvent(eventType);
+        }
+
+
         public void SubscribeToEvent<T>(NativeEventDelegate<T> eventDelegate) where T : NativeEventData
         {
             SubscribeToEvent<T>(null, eventDelegate);
