@@ -17,6 +17,8 @@
 
 #include <Atomic/Physics/PhysicsWorld.h>
 
+#include <Atomic/Scene/ValueAnimation.h>
+
 #include <Atomic/Input/Controls.h>
 
 
@@ -540,6 +542,16 @@ namespace Atomic
                 return;
 
             manager->SetObstacleAvoidanceParams(obstacleAvoidanceType, *parms);
+        }
+
+        // ValueAnimation
+
+        ATOMIC_EXPORT_API bool csi_Atomic_ValueAnimation_SetKeyFrame(ValueAnimation* self, float time, ScriptVariant* variant)
+        {
+            if (!self || !variant)
+                return false;
+
+            return self->SetKeyFrame(time, variant->GetVariant());
         }
 
 

@@ -26,9 +26,18 @@ namespace AtomicEngine
 
 
 
-        public static readonly Color White = new Color(1, 1, 1, 1);
-        public static readonly Color LightBlue = new Color(0.50f, 0.88f, 0.81f);
-        public static readonly Color Transparent = new Color(0, 0, 0, 0);
+
+        public static Color White = new Color(1, 1, 1);
+        public static Color Gray = new Color(0.5f, 0.5f, 0.5f);
+        public static Color Black = new Color(0.0f, 0.0f, 0.0f);
+        public static Color Red = new Color(1.0f, 0.0f, 0.0f);
+        public static Color Green = new Color(0.0f, 1.0f, 0.0f);
+        public static Color Blue = new Color(0.0f, 0.0f, 1.0f);
+        public static Color Cyan = new Color(0.0f, 1.0f, 1.0f);
+        public static Color Magenta = new Color(1.0f, 0.0f, 1.0f);
+        public static Color Yellow = new Color(1.0f, 1.0f, 0.0f);
+        public static Color Transparent = new Color(0.0f, 0.0f, 0.0f, 0.0f);
+
 
         public static Color operator *(Color value, float scale)
         {
