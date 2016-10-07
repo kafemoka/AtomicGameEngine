@@ -20,32 +20,45 @@
 // THE SOFTWARE.
 //
 
+#pragma once
+
+#include <Atomic/Core/Variant.h>
+#include <Atomic/Resource/ResourceCache.h>
+
 #include "ScriptSystem.h"
-#include "ScriptComponent.h"
-#include "ScriptComponentFile.h"
 
 namespace Atomic
 {
+    /// Wraps a Variant as a RefCounted so we can easily send it to script code
+    /// For performance sensitive code, specialized marshaling should be used instead
+    class ScriptVariant : public RefCounted
+    {
+        ATOMIC_REFCOUNTED(ScriptVariant)
 
-WeakPtr<Context> ScriptSystem::scriptContext_;
+    public:
 
-void RegisterScriptLibrary(Context* context);
+        ScriptVariant() : RefCounted()
+        {
 
-ScriptSystem::ScriptSystem(Context* context) : Object(context)
-{
-    RegisterScriptLibrary(context);
-    scriptContext_ = context;
-}
+        }
 
-ScriptSystem::~ScriptSystem()
-{
-    scriptContext_ = nullptr;
-}
+        virtual ~ScriptVariant()
+        {
 
-void RegisterScriptLibrary(Context* context)
-{
-    ScriptComponentFile::RegisterObject(context);
-    ScriptComponent::RegisterObject(context);
-}
+        }
+
+        const Variant& GetVariant() { return variant_; }
+
+        void SetVariant(const Variant& value) { variant_ = value; }
+
+        Vector2 GetVector2() { return variant_.GetVector2(); }
+
+        void SetVector2(const Vector2& value) { variant_ = value; }
+
+    private:
+
+        Variant variant_;
+
+    };
 
 }

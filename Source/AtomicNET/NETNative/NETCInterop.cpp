@@ -1,10 +1,12 @@
 
+#include <Atomic/Script/ScriptVariant.h>
 #include <Atomic/Script/ScriptVariantMap.h>
 #include <Atomic/IPC/IPC.h>
 
 #include <Atomic/Graphics/VertexBuffer.h>
 #include <Atomic/Graphics/Viewport.h>
 #include <Atomic/Graphics/Graphics.h>
+#include <Atomic/Graphics/RenderPath.h>
 #include <Atomic/Graphics/Camera.h>
 #include <Atomic/Graphics/Light.h>
 #include <Atomic/Graphics/Octree.h>
@@ -174,6 +176,26 @@ namespace Atomic
                 return;
 
             graphics->SetShaderParameter(param, *matrix);
+        }
+
+        // RenderPath
+
+        ATOMIC_EXPORT_API void csi_Atomic_RenderPath_SetShaderParameter(RenderPath* renderPath, const char* name, ScriptVariant* value)
+        {
+            if (!renderPath || !name || !value)
+                return;
+
+            Vector2 v2 = value->GetVariant().GetVector2();
+
+            renderPath->SetShaderParameter(name, value->GetVariant());
+        }
+
+        ATOMIC_EXPORT_API void csi_Atomic_RenderPath_GetShaderParameter(RenderPath* renderPath, const char* name, ScriptVariant* value)
+        {
+            if (!renderPath || !name || !value)
+                return;
+
+            value->SetVariant(renderPath->GetShaderParameter(name));
         }
 
         // Light

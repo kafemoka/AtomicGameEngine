@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 namespace AtomicEngine
 {
 
+    [ComVisible(true)]
     public partial class RefCounted
     {
 
